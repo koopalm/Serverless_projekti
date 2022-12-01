@@ -59,13 +59,13 @@ def lambda_handler(event, context):
     post_to_dynamodb(inspiration_image_url, daily_series)
 
     htmlbody = ('''
-    <h1 style="color: #5e9ca0;">Your daily motivational picture</h1>
-    <br>
+    <h1 style="color: #5e9ca0;">Your daily motivational picture:</h1>
     <img src="%s" alt="Motivate!" />
     <br>
-    <h2 style="color: #2e6c80;">Today is coming this episode:</h2>
-    <p>Series: %s | Episode: %s | URL: %s</p>
-    ''' % (inspiration_image_url, daily_series['series'], daily_series['episode'], daily_series['episode_url']))
+    <br>
+    <h2 style="color: #2e6c80;">This episode is coming today:</h2>
+    <h3>Series: %s<br>Episode: %s<br>URL: <a href="%s">%s</a></h3>
+    ''' % (inspiration_image_url, daily_series['series'], daily_series['episode'], daily_series['episode_url'], daily_series['episode_url']))
 
     return {
         "statusCode": 200,
