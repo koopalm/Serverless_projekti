@@ -3,6 +3,12 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   week8-project3
 
+Parameters:
+  Subemail: 
+    Type: String
+    Default: no@email.given
+
+
 Resources:
   Project3Group3DynamoDB: 
     Type: AWS::DynamoDB::Table
@@ -15,7 +21,6 @@ Resources:
         - 
           AttributeName: "id"
           KeyType: "HASH"
-          
       BillingMode: PROVISIONED
       ProvisionedThroughput: 
         ReadCapacityUnits: "1"
@@ -38,3 +43,42 @@ Resources:
           Properties:
             Path: /
             Method: get
+
+  MySNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: "DailyMotivationSeries"
+      KmsMasterKeyId: alias/aws/sns
+
+  MySubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: !Ref Subemail
+      Protocol: email
+      TopicArn: !Ref MySNSTopic
+
+  ScheduledLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.9
+      CodeUri: lambda/
+      Handler: scheduled.lambda_handler
+      Description: Run once a day cron schedule
+      Policies:
+        - AmazonSNSFullAccess
+        - AmazonDynamoDBFullAccess
+      Environment:
+        Variables:
+          snsarn: !Ref MySNSTopic
+      Events:
+        CronEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 6 ? * * *)
+            Name: CronSchedule
+            Description: Trigger Lambda at 6.00 AM daily
+
+Outputs:
+  ProdAPIGatewayURL:
+    Description: "Prod API Gateway URL for testing"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
